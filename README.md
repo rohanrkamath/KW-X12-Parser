@@ -1,4 +1,4 @@
-# EDI Parser
+# KW X12 EDI Parser
 
 A Python library for parsing and writing X12 837P (Professional) healthcare EDI files.
 
@@ -19,7 +19,7 @@ pip install -e ".[dataframe]"
 DataFrame with essential columns (one row per claim): provider_name, claim_id, patient_name, total_charge, etc.
 
 ```python
-from parsers import casual_parse_x837p
+from kw_x12_edi_parser import casual_parse_x837p
 
 df = casual_parse_x837p("path/to/837p_file.txt")
 # or: casual_parse_x837p(open("file.txt").read())
@@ -31,7 +31,7 @@ print(df[["claim_id", "patient_name", "total_charge"]])
 DataFrame with every loop and segment (420+ columns): ISA_*, GS_*, CLM_*, NM1_*, SV1_*, OTHER_SUBSCRIBER_*, etc.
 
 ```python
-from parsers import full_parse_x837p
+from kw_x12_edi_parser import full_parse_x837p
 
 df = full_parse_x837p("path/to/837p_file.txt")
 # Use for COB claims or when you need complete data
@@ -42,7 +42,7 @@ df = full_parse_x837p("path/to/837p_file.txt")
 Convert a DataFrame back to 837P EDI. Two modes: filter original EDI by claim IDs (preserves segments) or build from scratch.
 
 ```python
-from parsers import casual_parse_x837p, write_to_edi_x837p
+from kw_x12_edi_parser import casual_parse_x837p, write_to_edi_x837p
 
 df = casual_parse_x837p("original.txt")
 released = df[df["claim_id"].isin({"123", "456"})]
@@ -61,7 +61,7 @@ Requires `pip install -e ".[dataframe]"`.
 ## Project structure
 
 ```
-parsers/
+kw_x12_edi_parser/
 └── x837p/
     ├── api.py          # casual_parse_x837p, full_parse_x837p, write_to_edi_x837p
     ├── write_claims.py # write-claims CLI

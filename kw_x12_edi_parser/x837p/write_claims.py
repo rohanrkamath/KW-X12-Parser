@@ -3,7 +3,7 @@ write-claims CLI: convert DataFrame of claims to EDI.
 Uses write_to_edi_x837p under the hood.
 """
 
-from parsers.x837p import write_to_edi_x837p
+from kw_x12_edi_parser.x837p import write_to_edi_x837p
 
 
 def write_claims_to_edi(

@@ -19,7 +19,7 @@ Parse 837P into a compact DataFrame with the most common columns (one row per cl
 - `source_file`
 
 ```python
-from parsers import casual_parse_x837p
+from kw_x12_edi_parser import casual_parse_x837p
 
 df = casual_parse_x837p("claims.txt")
 # or raw EDI string:
@@ -37,7 +37,7 @@ Parse 837P into a DataFrame with every loop and segment flattened to columns (42
 **Column naming:** X12-style, e.g. `ISA_*`, `GS_*`, `CLM_*`, `NM1_*`, `SV1_*`, `OTHER_SUBSCRIBER_*`, `OTHER_PAYER_*`.
 
 ```python
-from parsers import full_parse_x837p
+from kw_x12_edi_parser import full_parse_x837p
 
 df = full_parse_x837p("claims.txt")
 ```
@@ -65,7 +65,7 @@ Convert a DataFrame back to 837P EDI format.
 **Workflow:** For filtering mode, you can use output from either `casual_parse_x837p` or `full_parse_x837p` — only `claim_id` is needed. For build-from-scratch, use `full_parse_x837p`.
 
 ```python
-from parsers import casual_parse_x837p, write_to_edi_x837p
+from kw_x12_edi_parser import casual_parse_x837p, write_to_edi_x837p
 
 df = casual_parse_x837p("original.txt")
 released = df[df["claim_id"].isin({"123", "456"})]

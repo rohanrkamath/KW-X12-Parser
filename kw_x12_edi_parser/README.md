@@ -1,4 +1,4 @@
-# Parsers
+# KW X12 EDI Parser
 
 X12 EDI parsing library. Each subpackage corresponds to a transaction type.
 
@@ -11,9 +11,9 @@ X12 EDI parsing library. Each subpackage corresponds to a transaction type.
 ## Usage
 
 ```python
-from parsers import casual_parse_x837p, full_parse_x837p, write_to_edi_x837p
+from kw_x12_edi_parser import casual_parse_x837p, full_parse_x837p, write_to_edi_x837p
 
 df = casual_parse_x837p("claims.txt")
 ```
 
-See [parsers/x837p/README.md](x837p/README.md) for full API documentation.
+See [kw_x12_edi_parser/x837p/README.md](x837p/README.md) for full API documentation.

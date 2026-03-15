@@ -7,7 +7,7 @@ Public API:
   write_to_edi_x837p(df, path, ...) → Stitch DataFrame back to EDI
 """
 
-from parsers.x837p.api import (
+from kw_x12_edi_parser.x837p.api import (
     casual_parse_x837p,
     full_parse_x837p,
     write_to_edi_x837p,
