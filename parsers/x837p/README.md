@@ -101,9 +101,9 @@ Requires `pip install -e ".[dataframe]"`.
 ```
 x837p/
 ├── api.py           # Public API (casual_parse_x837p, full_parse_x837p, write_to_edi_x837p)
-├── write_claims.py  # CLI entry point
-├── edi_examples/    # Sample 837P files (25, 50, 75 claims)
-├── test/            # Workflow notebook
+├── write_claims.py  # write-claims CLI entry point
+├── workflow/        # Workflow notebook
+├── edi_examples/    # Sample 837P files (25, 50, 75 claims) + generate_samples.py
 └── utils/
     ├── segment_parser.py      # X12 segment parsing, delimiters
     ├── hierarchical_parser.py # HL tree → casual/full DataFrames

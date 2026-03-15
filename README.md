@@ -1,22 +1,22 @@
 # EDI Parser
 
-A Python library to parse X12 837P (Professional) EDI files.
+A Python library for parsing and writing X12 837P (Professional) healthcare EDI files.
+
+**Repository:** [github.com/rohanrkamath/KW-X12-EDI-Parser](https://github.com/rohanrkamath/KW-X12-EDI-Parser)
 
 ## Installation
 
 ```bash
 pip install -e .
-# For DataFrame support:
+# For DataFrame support (required for parsing and write-claims CLI):
 pip install -e ".[dataframe]"
 ```
 
 ## Usage
 
-Three main functions:
+### 1. casual_parse_x837p – key columns
 
-### 1. casual_parse_x837p – important columns
-
-DataFrame with key columns (one row per claim): provider_name, claim_id, patient_name, total_charge, etc.
+DataFrame with essential columns (one row per claim): provider_name, claim_id, patient_name, total_charge, etc.
 
 ```python
 from parsers import casual_parse_x837p
@@ -26,7 +26,7 @@ df = casual_parse_x837p("path/to/837p_file.txt")
 print(df[["claim_id", "patient_name", "total_charge"]])
 ```
 
-### 2. full_parse_x837p – everything
+### 2. full_parse_x837p – full schema
 
 DataFrame with every loop and segment (420+ columns): ISA_*, GS_*, CLM_*, NM1_*, SV1_*, OTHER_SUBSCRIBER_*, etc.
 
@@ -37,36 +37,37 @@ df = full_parse_x837p("path/to/837p_file.txt")
 # Use for COB claims or when you need complete data
 ```
 
-### 3. write_to_edi_x837p – stitch DataFrame back to EDI
+### 3. write_to_edi_x837p – DataFrame to EDI
 
-Convert a DataFrame to 837P EDI. Use when claims are redacted and you need to output a valid file.
+Convert a DataFrame back to 837P EDI. Two modes: filter original EDI by claim IDs (preserves segments) or build from scratch.
 
 ```python
-from parsers import full_parse_x837p, write_to_edi_x837p
+from parsers import casual_parse_x837p, write_to_edi_x837p
 
-# Option A: Build from scratch (no original EDI)
-df = full_parse_x837p("original.txt")
+df = casual_parse_x837p("original.txt")
 released = df[df["claim_id"].isin({"123", "456"})]
-write_to_edi_x837p(released, "released.txt")
-
-# Option B: Filter original EDI by claim IDs (preserves exact segments)
-write_to_edi_x837p(released, "released.txt", original_edi="original.txt")
+write_to_edi_x837p(released, "claims_out.txt", original_edi="original.txt")
 ```
 
 ## CLI
 
 ```bash
-write-claims csv_file.csv -o claims.txt
-write-claims csv_file.csv original_edi.txt -o claims.txt
+write-claims claims.csv -o claims.txt
+write-claims claims.csv original.txt -o claims.txt   # filter by claim IDs
 ```
+
+Requires `pip install -e ".[dataframe]"`.
 
 ## Project structure
 
 ```
 parsers/
-└── x837p/           # 837P (Professional)
-    ├── api.py       # casual_parse_x837p, full_parse_x837p, write_to_edi_x837p
-    └── utils/       # parser, x837, x837_full, df_to_edi, ...
+└── x837p/
+    ├── api.py          # casual_parse_x837p, full_parse_x837p, write_to_edi_x837p
+    ├── write_claims.py # write-claims CLI
+    ├── workflow/       # Workflow notebook
+    ├── edi_examples/   # Sample 837P files
+    └── utils/          # Parser internals
 ```
 
 ## Supported formats
