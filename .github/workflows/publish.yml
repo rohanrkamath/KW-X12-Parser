@@ -1,9 +1,10 @@
 # Build and publish to PyPI when you create a release or push a version tag.
-# Setup: https://docs.pypi.org/trusted-publishers/ (recommended) or use PYPI_API_TOKEN secret.
+# Required: Settings → Secrets → PYPI_API_TOKEN (PyPI API token with project upload scope)
 
 name: Publish to PyPI
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
   push:
