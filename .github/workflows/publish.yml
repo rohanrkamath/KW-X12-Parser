@@ -28,8 +28,8 @@ jobs:
       - name: Build package
         run: python -m build
 
-      # Publish using API token. Add secret PYPI_API_TOKEN in repo Settings → Secrets.
-      - name: Publish to PyPI
+      # Uses PYPI_API_TOKEN secret only (not Trusted Publishing). Add it in Settings → Secrets.
+      - name: Publish to PyPI (twine)
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
