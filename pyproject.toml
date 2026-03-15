@@ -1,28 +1,33 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "kw-x12-edi-parser"
 version = "0.1.0"
-description = "A Python library to parse X12 EDI files"
+description = "Parse and write X12 837P (Professional) healthcare EDI claims"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Rohan Kamath", email = "rkamath1610@gmail.com"}
 ]
 keywords = ["edi", "x12", "837", "healthcare", "parser"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
 ]
+
+[project.urls]
+Homepage = "https://github.com/rohanrkamath/KW-X12-EDI-Parser"
+Issues = "https://github.com/rohanrkamath/KW-X12-EDI-Parser/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "pytest-cov>=4.0"]

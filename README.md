@@ -1,14 +1,23 @@
 # KW X12 EDI Parser
 
-A Python library for parsing and writing X12 EDI files.
+[![PyPI version](https://badge.fury.io/py/kw-x12-edi-parser.svg)](https://pypi.org/project/kw-x12-edi-parser/)
 
-**Repository:** [github.com/rohanrkamath/KW-X12-EDI-Parser](https://github.com/rohanrkamath/KW-X12-EDI-Parser)
+A Python library for parsing and writing X12 837P (Professional) healthcare EDI files.
+
+**PyPI:** [pypi.org/project/kw-x12-edi-parser](https://pypi.org/project/kw-x12-edi-parser/) · **Source:** [github.com/rohanrkamath/KW-X12-EDI-Parser](https://github.com/rohanrkamath/KW-X12-EDI-Parser)
 
 ## Installation
 
 ```bash
+pip install kw-x12-edi-parser
+# With DataFrame support and write-claims CLI:
+pip install kw-x12-edi-parser[dataframe]
+```
+
+From source (development):
+
+```bash
 pip install -e .
-# For DataFrame support (required for parsing and write-claims CLI):
 pip install -e ".[dataframe]"
 ```
 
@@ -56,7 +65,7 @@ write-claims claims.csv -o claims.txt
 write-claims claims.csv original.txt -o claims.txt   # filter by claim IDs
 ```
 
-Requires `pip install -e ".[dataframe]"`.
+Requires `pip install kw-x12-edi-parser[dataframe]`.
 
 ## Project structure
 
@@ -74,3 +83,7 @@ kw_x12_edi_parser/
 
 - X12 837P (005010X222A1)
 - Delimiters auto-detected from ISA segment
+
+## Contributing
+
+Issues and pull requests: [github.com/rohanrkamath/KW-X12-EDI-Parser/issues](https://github.com/rohanrkamath/KW-X12-EDI-Parser/issues)
