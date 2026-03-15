@@ -1,0 +1,41 @@
+# Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Build artifacts
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Generated outputs
+released.txt
+
+# EDI sample files (may contain PHI)
+edi_examples/
+
+# Scripts (dev convenience)
+scripts/
+
+# Project notes (local use)
+CURSOR.md
+TODO.md
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
