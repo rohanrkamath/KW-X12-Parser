@@ -13,8 +13,6 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write  # required for PyPI Trusted Publisher (OIDC)
     steps:
       - uses: actions/checkout@v4
 
@@ -29,14 +27,9 @@ jobs:
       - name: Build package
         run: python -m build
 
-      # Option A: PyPI Trusted Publisher (no secrets). Add this repo in PyPI under
-      # Your project → Publishing → Add a new pending publisher (owner, repo, workflow name, environment).
+      # Publish using API token. Add secret PYPI_API_TOKEN in repo Settings → Secrets.
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-
-      # Option B: If not using Trusted Publisher, comment out the step above and use this instead:
-      # - name: Publish to PyPI
-      #   env:
-      #     TWINE_USERNAME: __token__
-      #     TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      #   run: pip install twine && twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: pip install twine && twine upload dist/*
