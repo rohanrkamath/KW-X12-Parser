@@ -3,9 +3,9 @@ requires = ["setuptools>=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kw-x12-edi-parser"
-version = "0.1.1"
-description = "Parse and write X12 837P (Professional) healthcare EDI claims"
+name = "kw-x12-parser"
+version = "0.1.0"
+description = "Parse and write X12 healthcare EDI claims"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
@@ -26,16 +26,16 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/rohanrkamath/KW-X12-EDI-Parser"
-Issues = "https://github.com/rohanrkamath/KW-X12-EDI-Parser/issues"
+Homepage = "https://github.com/rohanrkamath/KW-X12-Parser"
+Issues = "https://github.com/rohanrkamath/KW-X12-Parser/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "pytest-cov>=4.0"]
 dataframe = ["pandas>=1.0.0"]  # For to_claims_dataframe, write_claims_to_edi
 
 [project.scripts]
-write-claims = "kw_x12_edi_parser.x837p.write_claims:main"
+write-claims = "kw_x12_parser.x837p.write_claims:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["kw_x12_edi_parser*"]
+include = ["kw_x12_parser*"]

@@ -13,5 +13,5 @@ Samples vary in structure so concatenated DataFrames get different column unions
 ## Regenerate
 
 ```bash
-python kw_x12_edi_parser/x837p/edi_examples/generate_samples.py
+python kw_x12_parser/x837p/edi_examples/generate_samples.py
 ```

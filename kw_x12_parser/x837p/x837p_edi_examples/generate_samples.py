@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Generate notional X12 837P EDI sample files (20-100 claims each).
-Output: kw_x12_edi_parser/x837p/edi_examples/edi_sample_*.txt
+Output: kw_x12_parser/x837p/edi_examples/edi_sample_*.txt
 Uses notional data; adheres to X12 005010X222A1 837P structure.
 
  richness: "minimal" (~311 cols), "medium" (~550 cols), "full" (~800+ cols like home_trdplntr)
