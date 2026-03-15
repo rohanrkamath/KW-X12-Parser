@@ -18,7 +18,7 @@ build/
 # Generated outputs
 released.txt
 
-# EDI sample files (may contain PHI)
+# EDI sample files
 edi_examples/
 
 # Scripts (dev convenience)
