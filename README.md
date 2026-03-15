@@ -1,6 +1,6 @@
 # KW X12 EDI Parser
 
-A Python library for parsing and writing X12 837P (Professional) healthcare EDI files.
+A Python library for parsing and writing X12 EDI files.
 
 **Repository:** [github.com/rohanrkamath/KW-X12-EDI-Parser](https://github.com/rohanrkamath/KW-X12-EDI-Parser)
 

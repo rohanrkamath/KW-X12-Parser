@@ -4,6 +4,18 @@ Python module for parsing and writing X12 837P healthcare professional claims. S
 
 ---
 
+## What is X12 837P?
+
+**837P** is the X12 EDI transaction set for **healthcare professional claims**. It is the standard format used in the United States to submit medical, dental, and other professional services claims electronically between providers, payers, and clearinghouses.
+
+- **837** – X12 transaction identifier for healthcare claims (837I = institutional, 837P = professional, 837D = dental)
+- **P (Professional)** – Covers claims for physician visits, office procedures, DME, and similar professional services (not facility/inpatient)
+- **005010X222A1** – The implementation guide version; defines segment usage, loops, and business rules per HIPAA
+
+The 837P structure uses **HL (Hierarchical Level)** segments to organize data: billing provider → claims → subscribers/patients → service lines. Segments (ISA, GS, ST, BHT, NM1, CLM, SV1, etc.) carry provider, patient, diagnosis, procedure, and payment information. Medicare, Medicaid, and commercial payers typically require 837P for professional claims submission.
+
+---
+
 ## Public API
 
 ### `casual_parse_x837p(edi)`
