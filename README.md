@@ -1,6 +1,6 @@
 # KW X12 EDI Parser
 
-[![PyPI version](https://badge.fury.io/py/kw-x12-parser.svg)](https://pypi.org/project/kw-x12-parser/)
+[![PyPI version](https://img.shields.io/pypi/v/kw-x12-parser.svg)](https://pypi.org/project/kw-x12-parser/)
 
 A Python library for parsing and writing X12 healthcare EDI files.
 
