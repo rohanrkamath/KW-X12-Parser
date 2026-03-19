@@ -25,6 +25,15 @@ from .utils.dataframe_to_edi import write_edi_from_dataframe
 EdiInput = Union[str, Path]
 
 
+def _normalize_claim_id(value: object) -> str:
+    """Normalize claim ID string for stable matching across parse/write paths."""
+    s = str(value).strip()
+    # Common DataFrame coercion: numeric IDs can become "<id>.0"
+    if s.endswith(".0") and s[:-2].isdigit():
+        return s[:-2]
+    return s
+
+
 def _resolve_edi(edi: EdiInput) -> tuple[str, str | None]:
     """Return (content, source_file). source_file is filename for path, else None."""
     s = str(edi)
@@ -102,10 +111,16 @@ def write_to_edi_x837p(
 
     if not isinstance(dataframe, pd.DataFrame):
         raise TypeError("dataframe must be a pandas DataFrame")
+    if claim_id_column not in dataframe.columns:
+        raise ValueError(f"Missing required column: {claim_id_column}")
 
     if original_edi is not None:
         content, _ = _resolve_edi(original_edi)
-        claim_ids = dataframe[claim_id_column].dropna().astype(str).unique().tolist()
+        claim_ids = [
+            _normalize_claim_id(v)
+            for v in dataframe[claim_id_column].dropna().tolist()
+            if str(v).strip()
+        ]
         released_set = set(claim_ids)
         p = parse_837p_full(content=content)
         p.write_edi(output_path, include_claim_ids=released_set)

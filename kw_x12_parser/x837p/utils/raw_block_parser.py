@@ -18,9 +18,9 @@ from .claim_models import (
 )
 
 
-def _extract_claim_id_from_raw(raw: str, elem_sep: str) -> str | None:
+def _extract_claim_id_from_raw(raw: str, elem_sep: str, seg_term: str) -> str | None:
     """Extract CLM01 from raw block content."""
-    for raw_seg in raw.split("~"):
+    for raw_seg in raw.split(seg_term):
         raw_seg = raw_seg.strip()
         if not raw_seg:
             continue
@@ -134,16 +134,57 @@ class Parsed837PFull(Parsed837P):
                 return provider_has_included_claims(block.hl_id)
             return claim_included(block)
 
+        def _renumber_hl_blocks(blocks: list[EdiBlock]) -> list[EdiBlock]:
+            """
+            Renumber HL01 sequentially and remap HL02 parent references for included blocks.
+            This keeps Loop 2000 HL hierarchy valid after claim filtering.
+            """
+            e = self.delimiters.element
+            old_to_new: dict[str, str] = {}
+
+            # First pass: assign new sequential HL IDs in output order.
+            for idx, b in enumerate(blocks, start=1):
+                old_to_new[b.hl_id] = str(idx)
+
+            remapped: list[EdiBlock] = []
+            for b in blocks:
+                segs = [s for s in b.raw_content.split(t) if s.strip()]
+                if not segs:
+                    remapped.append(b)
+                    continue
+
+                hl_parts = segs[0].split(e)
+                if len(hl_parts) >= 2:
+                    hl_parts[1] = old_to_new.get(b.hl_id, hl_parts[1])
+                if len(hl_parts) >= 3:
+                    old_parent = hl_parts[2].strip()
+                    if old_parent:
+                        hl_parts[2] = old_to_new.get(old_parent, hl_parts[2])
+                    else:
+                        hl_parts[2] = ""
+                segs[0] = e.join(hl_parts)
+
+                remapped.append(
+                    EdiBlock(
+                        hl_id=old_to_new.get(b.hl_id, b.hl_id),
+                        parent_id=old_to_new.get(b.parent_id, b.parent_id) if b.parent_id else None,
+                        level_code=b.level_code,
+                        raw_content=t.join(segs),
+                        claim_id=b.claim_id,
+                    )
+                )
+            return remapped
+
         t = self.delimiters.segment_term
         parts: list[str] = [self.raw_isa, self.raw_gs, self.raw_header]
 
-        for block in self.raw_blocks:
-            if should_include_block(block):
-                parts.append(block.raw_content)
+        included_blocks = [b for b in self.raw_blocks if should_include_block(b)]
+        included_blocks = _renumber_hl_blocks(included_blocks)
+        for block in included_blocks:
+            parts.append(block.raw_content)
 
         # Recalculate SE01 (segment count)
         header_count = len([s for s in self.raw_header.split(t) if s.strip()])
-        included_blocks = [b for b in self.raw_blocks if should_include_block(b)]
         block_count = sum(len([s for s in b.raw_content.split(t) if s.strip()]) for b in included_blocks)
         total_seg_count = header_count + block_count + 1  # +1 for SE
         se_parts = self.raw_se.split(self.delimiters.element)
@@ -235,7 +276,11 @@ def parse_837p_full(
         if parent_id == "":
             parent_id = None
         level_code = parts[3].strip() if len(parts) > 3 else ""
-        claim_id = _extract_claim_id_from_raw(raw_content, base.delimiters.element) if level_code == "22" else None
+        claim_id = (
+            _extract_claim_id_from_raw(raw_content, base.delimiters.element, base.delimiters.segment_term)
+            if level_code == "22"
+            else None
+        )
         full.raw_blocks.append(
             EdiBlock(
                 hl_id=hl_id,
