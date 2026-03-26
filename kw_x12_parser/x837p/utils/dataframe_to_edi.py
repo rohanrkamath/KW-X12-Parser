@@ -147,6 +147,7 @@ def build_edi_from_dataframe(
     segments_per_line: bool = True,
     blank_line_between_segments: bool = False,
     normalize_zips: bool = False,
+    isa15_usage_indicator: str | None = None,
 ) -> str:
     """
     Build valid 837P EDI from a DataFrame with full column schema.
@@ -160,6 +161,7 @@ def build_edi_from_dataframe(
         element_sep: Element delimiter (default *).
         subelement_sep: Subelement delimiter (default :).
         segment_term: Segment terminator (default ~).
+        isa15_usage_indicator: Optional ISA15 override ("T" test / "P" production).
 
     Returns:
         Valid 837P EDI string.
@@ -231,10 +233,14 @@ def build_edi_from_dataframe(
         return body + d.element + d.subelement + d.segment_term  # positions 103,104,105 = elem, subelem, term
 
     isa_els = [v(f"ISA_elem_{i:02d}") for i in range(1, 17)]
+    if isa15_usage_indicator is not None:
+        isa_els[14] = isa15_usage_indicator
     if any(isa_els):
         segments.append(_pad_isa(isa_els))
     else:
         default_isa = ["00", "", "00", "", "ZZ", "SENDER", "ZZ", "RECEIVER", "230101", "1200", "^", "00501", "000000001", "0", "P", ":"]
+        if isa15_usage_indicator is not None:
+            default_isa[14] = isa15_usage_indicator
         segments.append(_pad_isa(default_isa))
 
     # --- GS ---

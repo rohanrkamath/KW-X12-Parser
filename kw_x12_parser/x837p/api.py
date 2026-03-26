@@ -91,6 +91,7 @@ def write_to_edi_x837p(
     original_edi: EdiInput | None = None,
     claim_id_column: str = "claim_id",
     blank_line_between_segments: bool = True,
+    isa15_usage_indicator: str | None = None,
 ) -> None:
     """
     Convert a DataFrame back to 837P EDI format. Supports redacted data: if some
@@ -106,6 +107,7 @@ def write_to_edi_x837p(
             If omitted: builds EDI from scratch from the DataFrame.
         claim_id_column: Column name for claim ID (default: "claim_id").
         blank_line_between_segments: Insert blank line between segments (default True).
+        isa15_usage_indicator: Optional ISA15 override ("T" test / "P" production).
     """
     import pandas as pd  # type: ignore[import-untyped]
 
@@ -113,6 +115,10 @@ def write_to_edi_x837p(
         raise TypeError("dataframe must be a pandas DataFrame")
     if claim_id_column not in dataframe.columns:
         raise ValueError(f"Missing required column: {claim_id_column}")
+    if isa15_usage_indicator is not None:
+        isa15_usage_indicator = str(isa15_usage_indicator).strip().upper()
+        if isa15_usage_indicator not in {"T", "P"}:
+            raise ValueError("isa15_usage_indicator must be 'T' or 'P'")
 
     if original_edi is not None:
         content, _ = _resolve_edi(original_edi)
@@ -123,10 +129,15 @@ def write_to_edi_x837p(
         ]
         released_set = set(claim_ids)
         p = parse_837p_full(content=content)
-        p.write_edi(output_path, include_claim_ids=released_set)
+        p.write_edi(
+            output_path,
+            include_claim_ids=released_set,
+            isa15_usage_indicator=isa15_usage_indicator,
+        )
     else:
         write_edi_from_dataframe(
             dataframe,
             output_path,
             blank_line_between_segments=blank_line_between_segments,
+            isa15_usage_indicator=isa15_usage_indicator,
         )

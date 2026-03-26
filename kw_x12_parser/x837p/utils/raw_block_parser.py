@@ -96,6 +96,7 @@ class Parsed837PFull(Parsed837P):
         exclude_claim_ids: set[str] | None = None,
         include_claim_ids: set[str] | None = None,
         include_claim_ids_fn: Callable[[str], bool] | None = None,
+        isa15_usage_indicator: str | None = None,
     ) -> str:
         """
         Repackage EDI string, optionally excluding held claims.
@@ -104,6 +105,7 @@ class Parsed837PFull(Parsed837P):
             exclude_claim_ids: Claim IDs to omit (held claims).
             include_claim_ids: If set, only include these claim IDs (released claims).
             include_claim_ids_fn: Callable(claim_id) -> bool; if provided, include claim when True.
+            isa15_usage_indicator: Optional ISA15 override ("T" test / "P" production).
 
         Returns:
             Valid 837P EDI string (minus excluded claims).
@@ -176,7 +178,13 @@ class Parsed837PFull(Parsed837P):
             return remapped
 
         t = self.delimiters.segment_term
-        parts: list[str] = [self.raw_isa, self.raw_gs, self.raw_header]
+        raw_isa = self.raw_isa
+        if isa15_usage_indicator is not None:
+            parts = raw_isa.split(self.delimiters.element)
+            if len(parts) >= 16:
+                parts[15] = isa15_usage_indicator
+                raw_isa = self.delimiters.element.join(parts)
+        parts: list[str] = [raw_isa, self.raw_gs, self.raw_header]
 
         included_blocks = [b for b in self.raw_blocks if should_include_block(b)]
         included_blocks = _renumber_hl_blocks(included_blocks)
@@ -205,12 +213,14 @@ class Parsed837PFull(Parsed837P):
         exclude_claim_ids: set[str] | None = None,
         include_claim_ids: set[str] | None = None,
         include_claim_ids_fn: Callable[[str], bool] | None = None,
+        isa15_usage_indicator: str | None = None,
     ) -> None:
         """Write repackaged EDI to file. See to_edi_string() for args."""
         content = self.to_edi_string(
             exclude_claim_ids=exclude_claim_ids,
             include_claim_ids=include_claim_ids,
             include_claim_ids_fn=include_claim_ids_fn,
+            isa15_usage_indicator=isa15_usage_indicator,
         )
         Path(path).write_text(content, encoding="utf-8")
 
