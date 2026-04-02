@@ -30,6 +30,45 @@ def _extract_claim_id_from_raw(raw: str, elem_sep: str, seg_term: str) -> str | 
     return None
 
 
+def _extract_claim_ids_from_segment_list(segments: list[str], elem_sep: str) -> list[str]:
+    """Collect CLM01 from a list of raw segment strings (one segment per element)."""
+    ids: list[str] = []
+    for raw_seg in segments:
+        raw_seg = raw_seg.strip()
+        if not raw_seg:
+            continue
+        parts = raw_seg.split(elem_sep)
+        if parts and parts[0].strip() == "CLM" and len(parts) > 1:
+            ids.append(parts[1].strip())
+    return ids
+
+
+def _pair_st837_se_indices(raw_list: list[str]) -> list[tuple[int, int]]:
+    """
+    Pair each ST*837* start index with its closing SE index within the same group.
+    Returns [] if there is at most one 837 transaction set (caller uses single-ST path).
+    """
+    st_indices = [i for i, r in enumerate(raw_list) if r.startswith("ST*837")]
+    if len(st_indices) <= 1:
+        return []
+    pairs: list[tuple[int, int]] = []
+    for k, st_i in enumerate(st_indices):
+        end_limit = st_indices[k + 1] if k + 1 < len(st_indices) else len(raw_list)
+        se_k: int | None = None
+        for j in range(st_i + 1, end_limit):
+            if raw_list[j].startswith("SE"):
+                se_k = j
+                break
+        if se_k is None:
+            for j in range(st_i + 1, len(raw_list)):
+                if raw_list[j].startswith("SE"):
+                    se_k = j
+                    break
+        if se_k is not None:
+            pairs.append((st_i, se_k))
+    return pairs
+
+
 @dataclass
 class EdiBlock:
     """One HL block (billing provider or claim) with full raw EDI content."""
@@ -63,6 +102,9 @@ class Parsed837PFull(Parsed837P):
     # Every segment in the file (ISA through IEA) in document order
     complete_segments: list[Segment] = field(default_factory=list, repr=False)
 
+    # Raw segment strings in order (from parse_string); used for multi-ST*837* repackaging
+    raw_segment_list: list[str] = field(default_factory=list, repr=False)
+
     def iter_every_segment(self):
         """Yield every segment in the file (ISA through IEA) in document order."""
         for seg in self.complete_segments:
@@ -90,6 +132,75 @@ class Parsed837PFull(Parsed837P):
                     for seg in sl.segments:
                         yield claim.claim_id, seg
 
+    def _to_edi_string_multi_gs_st837(
+        self,
+        st_se_pairs: list[tuple[int, int]],
+        *,
+        exclude: set[str],
+        include: set[str] | None,
+        include_fn: Callable[[str], bool] | None,
+        isa15_usage_indicator: str | None,
+    ) -> str:
+        """
+        One GS group contains multiple ST*837* ... SE transaction sets.
+        Emit ISA, GS, then each included ST..SE verbatim, then GE (GE01 = output txn count), IEA.
+        """
+        t = self.delimiters.segment_term
+        e = self.delimiters.element
+        raw_list = self.raw_segment_list
+        if not raw_list:
+            raise ValueError("Multi-ST repackaging requires raw_segment_list from parse_837p_full()")
+
+        def claim_id_included(cid: str) -> bool:
+            if cid in exclude:
+                return False
+            if include is not None and cid not in include:
+                return False
+            if include_fn is not None and not include_fn(cid):
+                return False
+            return True
+
+        def txn_included(st_i: int, se_i: int) -> bool:
+            segs = raw_list[st_i : se_i + 1]
+            cids = _extract_claim_ids_from_segment_list(segs, e)
+            if not cids:
+                return True
+            return any(claim_id_included(c) for c in cids)
+
+        raw_isa = self.raw_isa
+        if isa15_usage_indicator is not None:
+            parts_isa = raw_isa.split(e)
+            if len(parts_isa) >= 16:
+                parts_isa[15] = isa15_usage_indicator
+                raw_isa = e.join(parts_isa)
+
+        parts_out: list[str] = [raw_isa, self.raw_gs]
+
+        n_txn = 0
+        for st_i, se_i in st_se_pairs:
+            if txn_included(st_i, se_i):
+                parts_out.append(t.join(raw_list[st_i : se_i + 1]))
+                n_txn += 1
+
+        if n_txn == 0:
+            raise ValueError("No transaction sets left after claim filtering; cannot build EDI.")
+
+        ge_raw = self.raw_ge
+        if ge_raw:
+            ge_parts = ge_raw.split(e)
+            if ge_parts and ge_parts[0].strip() == "GE" and len(ge_parts) >= 2:
+                ge_parts[1] = str(n_txn)
+                parts_out.append(e.join(ge_parts))
+            else:
+                parts_out.append(ge_raw)
+        else:
+            parts_out.append("")
+
+        if self.raw_iea:
+            parts_out.append(self.raw_iea)
+
+        return t.join(parts_out)
+
     def to_edi_string(
         self,
         *,
@@ -113,6 +224,16 @@ class Parsed837PFull(Parsed837P):
         exclude = exclude_claim_ids or set()
         include = include_claim_ids
         fn = include_claim_ids_fn
+
+        multi_pairs = _pair_st837_se_indices(self.raw_segment_list)
+        if len(multi_pairs) > 1:
+            return self._to_edi_string_multi_gs_st837(
+                multi_pairs,
+                exclude=exclude,
+                include=include,
+                include_fn=fn,
+                isa15_usage_indicator=isa15_usage_indicator,
+            )
 
         def claim_included(block: EdiBlock) -> bool:
             if block.claim_id is None:
@@ -317,5 +438,6 @@ def parse_837p_full(
     full.raw_se = raw_list[se_idx] if 0 <= se_idx < len(raw_list) else ""
     full.raw_ge = raw_list[ge_idx] if 0 <= ge_idx < len(raw_list) else ""
     full.raw_iea = raw_list[iea_idx] if 0 <= iea_idx < len(raw_list) else ""
+    full.raw_segment_list = list(raw_list)
 
     return full
