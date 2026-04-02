@@ -275,10 +275,21 @@ def parse_837p_full(
     full.raw_header = t.join(header_raws)
 
     for i, hi in enumerate(hl_indices):
-        end = hl_indices[i + 1] if i + 1 < len(hl_indices) else se_idx
+        if i + 1 < len(hl_indices):
+            end = hl_indices[i + 1]
+        else:
+            # Multi-ST files: several ST*837* groups share one GS; the first SE in the
+            # file closes only the first transaction. Using se_idx here can make end < hi
+            # and yield an empty slice — use the first SE after this HL instead.
+            end = next(
+                (j for j in range(hi + 1, len(raw_list)) if raw_list[j].startswith("SE")),
+                len(raw_list),
+            )
         if end < 0:
             end = len(raw_list)
         block_raws = raw_list[hi:end]
+        if not block_raws:
+            continue
         raw_content = t.join(block_raws)
         parts = block_raws[0].split(base.delimiters.element)  # HL segment
         hl_id = parts[1].strip() if len(parts) > 1 else ""
